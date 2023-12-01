@@ -42,12 +42,15 @@ problem = Problem()
 
 # adicionar variáveis: (paciente, noite) -> cama
 variable_beds = {}
+variable_domains = {}  # para guardar o dominio das variaveis
+
 for patient in patients:
     for night in range(patient['admission_day'], patient['discharge_day']):
         variable_bed = (patient['ID'], night)
         domain_bed = [(bed['ID_room'], bed['ID_bed']) for bed in beds]
         problem.addVariable(variable_bed, domain_bed)
         variable_beds[(patient['ID'], night)] = variable_bed
+        variable_domains[variable_bed] = domain_bed
 
 # restriçao - nao deve haver pacientes com o mesmo par (quarto, cama) no mesmo dia
 for night in range(max(patient['admission_day'] for patient in patients), min(patient['discharge_day'] for patient in patients) + 1):
@@ -62,12 +65,19 @@ problem.setSolver(BacktrackingSolver())
 # executar o solver para obter uma solução
 solution = problem.getSolution()
 
+# mostrar o domínio das variáveis
+def mostrar_dominio():
+    print("\nDominio:")
+    for variable in problem._variables:
+        domain = variable_domains.get(variable)
+        print(f"{variable}: {domain}")
+
 def mostrar_solucao_por_noite():
     # ordenar a solucao por noite
     sorted_solution = sorted(solution.items(), key=lambda x: x[0][1])
 
     # Mostrar a solução ordenada
-    print("\Atribuiçao de pacientes a quartos por noite:")
+    print("\nAtribuiçao de pacientes a quartos por noite:")
     current_night = None
     for (patient_id, night), (room_id, bed_id) in sorted_solution:
         if night != current_night:
@@ -77,6 +87,7 @@ def mostrar_solucao_por_noite():
         room = next(r for r in rooms if r['ID'] == room_id)
         print(f"  {patient['name']} ({patient['ID']}) -> Room {room['name']}, Bed {bed_id}")
 
+mostrar_dominio()
 mostrar_solucao_por_noite()
 
 print("--- %s seconds ---" % round(time.time() - start_time, 3))
