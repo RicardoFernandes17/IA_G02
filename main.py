@@ -1,14 +1,17 @@
-from constraint import Problem, AllDifferentConstraint
+from constraint import Problem, AllDifferentConstraint, BacktrackingSolver
+import time
 
-#dados
+start_time = time.time()
+
+# Dados
 patients = [
-    {'ID': 1, 'name': 'Patient1', 'age': 98, 'gender': 'M', 'admission_day': 0, 'discharge_day': 0},
+    {'ID': 1, 'name': 'Patient1', 'age': 98, 'gender': 'M', 'admission_day': 0, 'discharge_day': 3},
     {'ID': 2, 'name': 'Patient2', 'age': 82, 'gender': 'M', 'admission_day': 0, 'discharge_day': 5},
-    #{'ID': 3, 'name': 'Patient3', 'age': 43, 'gender': 'M', 'admission_day': 0, 'discharge_day': 1},
-    #{'ID': 4, 'name': 'Patient4', 'age': 88, 'gender': 'M', 'admission_day': 0, 'discharge_day': 4},
-    #{'ID': 5, 'name': 'Patient5', 'age': 20, 'gender': 'F', 'admission_day': 0, 'discharge_day': 3},
-    #{'ID': 6, 'name': 'Patient6', 'age': 65, 'gender': 'F', 'admission_day': 0, 'discharge_day': 1},
-    #{'ID': 7, 'name': 'Patient7', 'age': 33, 'gender': 'F', 'admission_day': 1, 'discharge_day': 7}
+    {'ID': 3, 'name': 'Patient3', 'age': 43, 'gender': 'M', 'admission_day': 0, 'discharge_day': 1},
+    {'ID': 4, 'name': 'Patient4', 'age': 88, 'gender': 'M', 'admission_day': 0, 'discharge_day': 4},
+    {'ID': 5, 'name': 'Patient5', 'age': 20, 'gender': 'F', 'admission_day': 0, 'discharge_day': 3},
+    {'ID': 6, 'name': 'Patient6', 'age': 65, 'gender': 'F', 'admission_day': 0, 'discharge_day': 1},
+    {'ID': 7, 'name': 'Patient7', 'age': 33, 'gender': 'F', 'admission_day': 1, 'discharge_day': 7}
 ]
 
 departments = [
@@ -37,47 +40,44 @@ beds = [
 # criar o problema CSP
 problem = Problem()
 
-# guardar o dominio das variáveis
-variable_domains = {}
-
-# variaveis: paciente -> quarto
+# adicionar variáveis: (paciente, noite) -> cama
+variable_beds = {}
 for patient in patients:
-    variable = patient['ID']
-    domain = [bed['ID_bed'] for bed in beds]
-    variable_domains[variable] = domain
-    problem.addVariable(variable, domain)
+    for night in range(patient['admission_day'], patient['discharge_day']):
+        variable_bed = (patient['ID'], night)
+        domain_bed = [(bed['ID_room'], bed['ID_bed']) for bed in beds]
+        problem.addVariable(variable_bed, domain_bed)
+        variable_beds[(patient['ID'], night)] = variable_bed
 
-# mostrar o domínio
-print("Domínio das variáveis:")
-for variable, domain in variable_domains.items():
-    print(f"Paciente {variable}: {domain}")
+# restriçao - nao deve haver pacientes com o mesmo par (quarto, cama) no mesmo dia
+for night in range(max(patient['admission_day'] for patient in patients), min(patient['discharge_day'] for patient in patients) + 1):
+    variables_for_night = [variable_beds[(patient['ID'], night)] for patient in patients if night in range(patient['admission_day'], patient['discharge_day'])]
+    problem.addConstraint(AllDifferentConstraint(), variables_for_night)
 
-# restriçao - cada paciente só pode ser alocado a um quarto e cama diferentes
-def all_different_constraint(*args):
-    return len(set(args)) == len(args)
+# definir a estratégia de backtracking (talvez seja a default, mas força)
+# estratégia que explora sistematicamente o espaço de busca para encontrar uma solução.
+# tenta diferentes atribuições de valores às variáveis até encontrar uma solução ou determinar que não há solução possível
+problem.setSolver(BacktrackingSolver())
 
-# Aplicar a restrição a cada par de variáveis (paciente, cama)
-for i in range(len(patients)):
-    for j in range(i + 1, len(patients)):
-        problem.addConstraint(all_different_constraint, [patients[i]['ID'], patients[j]['ID']])
+# executar o solver para obter uma solução
+solution = problem.getSolution()
 
-# restrição - cada paciente deve ter uma cama para cada noite no hospital
-# def nightly_allocation_constraint(*args):
-#    return len(set(args)) == 1
+def mostrar_solucao_por_noite():
+    # ordenar a solucao por noite
+    sorted_solution = sorted(solution.items(), key=lambda x: x[0][1])
 
-# Aplicar a nova restrição a cada combinação de variáveis (paciente, noite)
-# for patient in patients:
-#    for night in range(patient['admission_day'], patient['discharge_day'] + 1):
-#        problem.addConstraint(nightly_allocation_constraint, [patient['ID'], night])
-        
-# executar o solver
-solutions = problem.getSolutions()
-
-# mostrar a soluçao
-for solution in solutions:
-    print("Alocação de pacientes a quartos:")
-    for patient_id, bed_id in solution.items():
+    # Mostrar a solução ordenada
+    print("\Atribuiçao de pacientes a quartos por noite:")
+    current_night = None
+    for (patient_id, night), (room_id, bed_id) in sorted_solution:
+        if night != current_night:
+            print(f"\nNoite {night}:")
+            current_night = night
         patient = next(p for p in patients if p['ID'] == patient_id)
-        bed = next(b for b in beds if b['ID_bed'] == bed_id)
-        print(f"{patient['name']} ({patient['ID']}) -> Room {bed['ID_room']}, Bed {bed['ID_bed']}")
-    print("\n")
+        room = next(r for r in rooms if r['ID'] == room_id)
+        print(f"  {patient['name']} ({patient['ID']}) -> Room {room['name']}, Bed {bed_id}")
+
+mostrar_solucao_por_noite()
+
+print("--- %s seconds ---" % round(time.time() - start_time, 3))
+
