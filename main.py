@@ -1,4 +1,5 @@
-from constraint import MinConflictsSolver, Problem, AllDifferentConstraint, FunctionConstraint,BacktrackingSolver
+from collections import defaultdict
+from constraint import Problem, FunctionConstraint,BacktrackingSolver
 import time
 
 ## Problema
@@ -12,7 +13,8 @@ import time
 # - A patient can require a room with specific equipment(s)
 
 class Paciente:
-    def __init__(self, nome, idade, genero, data_entrada, data_saida):
+    def __init__(self,id, nome, idade, genero, data_entrada, data_saida):
+        self.id = id
         self.nome = nome
         self.idade = idade
         self.genero = genero
@@ -25,11 +27,12 @@ class Departamento:
         self.nome_departamento = nome_departamento
 
 class Quarto:
-    def __init__(self, id_quarto, nome_quarto, capacidade, departamento):
+    def __init__(self, id_quarto, nome_quarto, capacidade, departamento, genero_quarto):
         self.id_quarto = id_quarto
         self.nome_quarto = nome_quarto
         self.capacidade = capacidade
         self.departamento = departamento
+        self.genero_quarto = genero_quarto
 
 class Cama:
     def __init__(self, id_cama, nome_cama, id_quarto):
@@ -43,26 +46,18 @@ start_time = time.time()
 
 # Lista de pacientes
 pacientes = [
-    Paciente("Patient 1", 98, "M", 1, 2),
-    Paciente("Patient 2", 82, "M", 1, 3),
-    Paciente("Patient 3", 43, "M", 1, 4),
-    Paciente("Patient 4", 88, "M", 1, 5),
-    Paciente("Patient 5", 20, "F", 1, 1),
-    Paciente("Patient 6", 65, "F", 1, 1),
-    Paciente("Patient 7", 33, "F", 2, 8),
-    Paciente("Patient 8", 86, "M", 3, 4),
-    Paciente("Patient 9", 22, "F", 3, 6),
-    Paciente("Patient 10", 70, "F", 4, 11),
-    # Paciente("Patient 11", 42, "M", 5, 11),
-    # Paciente("Patient 12", 3," F", 6, 12),
-    # Paciente("Patient 13", 14, "F", 6, 13),
-    # Paciente("Patient 14", 78, "M", 8, 14),
-    # Paciente("Patient 15", 29, "F", 9, 10),
-    # Paciente("Patient 16", 61, "F", 10, 16),
-    # Paciente("Patient 17", 56, "F", 11, 18),
-    # Paciente("Patient 18", 106, "F", 11, 15),
-    # Paciente("Patient 19", 4, "M", 12, 18),
-    # Paciente("Patient 20", 52, "F", 13, 20),   
+    Paciente(1,"Paciente 1", 98, "M", 1, 2),
+    Paciente(2,"Paciente 2", 82, "M", 1, 3),
+    Paciente(3,"Paciente 3", 43, "F", 1, 4),
+    Paciente(4,"Paciente 4", 88, "M", 1, 5),
+    Paciente(5,"Paciente 5", 20, "F", 1, 1),
+    Paciente(6,"Paciente 6", 65, "F", 1, 1),
+    Paciente(7,"Paciente 7", 88, "M", 1, 5),
+    Paciente(8,"Paciente 8", 88, "M", 1, 5),
+    Paciente(9,"Paciente 9", 86, "M", 3, 4),
+    Paciente(10,"Paciente 10", 22, "F", 3, 6),
+    Paciente(11,"Paciente 11", 70, "F", 4, 6),
+    Paciente(12,"Paciente 12", 70, "F", 4, 6),
 ]
 
 departamentos = [
@@ -71,37 +66,34 @@ departamentos = [
 ]
 
 rooms = [
-    Quarto(1,'R1', 4, 1),
-    Quarto(2,'R2', 4, 1),
+    Quarto(1,'R1', 4, 1, "M"),
+    Quarto(2,'R2', 4, 1, "F"),
+    Quarto(3,'R3', 4, 1, "M"),
+    Quarto(4,'R4', 4, 1, "F"),
 ]
 
-# Camas disponíveis no hospital
-camas = [
-    Cama(1, "1", 1),
-    Cama(2, "2", 1),
-    Cama(3, "3", 1),
-    Cama(4, "4", 1),
-    Cama(5, "5", 2),
-    Cama(6, "6", 2),
-    Cama(7, "7", 2),
-    Cama(8, "8", 2)
-]
-
+# Camas disponíveis no hospital com base nos quartos
+camas = []
+for room in rooms:
+    for i in range(1, room.capacidade + 1):
+        camas.append(Cama(i, "Cama {i}" , room.id_quarto))
 
 problem = Problem()
 
 # Criar o domínio
 for idx, paciente in enumerate(pacientes):
-    problem.addVariable(f'P{idx + 1}.cama', camas)
+    problem.addVariable(f'P{idx + 1}.genero', [paciente.genero])
     problem.addVariable(f'P{idx + 1}.entrada', [paciente.data_entrada])
     problem.addVariable(f'P{idx + 1}.saida', [paciente.data_saida])
-    problem.addVariable(f'P{idx + 1}.genero', [paciente.genero])
+    problem.addVariable(f'P{idx + 1}.cama', camas)
+    problem.addVariable(f'P{idx + 1}.quarto', rooms)
 
 
-# Constraints
-def all_different_constraint(*args):
-    return len(set(args)) == len(args)
 
+def getQuartoByCama(cama):
+    for quarto in rooms:
+        if quarto.id_quarto == cama.id_quarto:
+            return quarto
 
 # Function to add night assignment constraints between patients
 def add_night_assignment_constraints(problem, patients):
@@ -111,8 +103,8 @@ def add_night_assignment_constraints(problem, patients):
                 cama1, cama2 = f'P{idx1 + 1}.cama', f'P{idx2 + 1}.cama'
                 entrada1, entrada2 = f'P{idx1 + 1}.entrada', f'P{idx2 + 1}.entrada'
                 saida1, saida2 = f'P{idx1 + 1}.saida', f'P{idx2 + 1}.saida'
-                
-                
+                genero1,genero2 = f'P{idx1 + 1}.genero', f'P{idx2 + 1}.genero'
+ 
                 problem.addConstraint(
                     FunctionConstraint(
                         lambda c1, c2, e1, e2, s1, s2: e1 > s2 or s1 < e2 if c1 == c2 else True
@@ -130,6 +122,8 @@ solutions = problem.getSolution()
 sorted_solution = sorted(solutions.items(), key=lambda x: x[0])
 lista_noites = range(1, max([paciente.data_saida for paciente in pacientes]) + 1)
 
+print(sorted_solution)
+
 
 # Listar a solução por noite
 for noite in lista_noites:
@@ -141,9 +135,13 @@ for noite in lista_noites:
             entrada_var = f'P{idx_var}.entrada'
             saida_var = f'P{idx_var}.saida'
             genero_var = f'P{idx_var}.genero'
+            quarto_var = f'P{idx_var}.quarto'
+            room_gender = solutions[quarto_var].genero_quarto
 
-            print(f'{idx_var}: {paciente.nome}, Sexo: {paciente.genero}, [Datas: {solutions[entrada_var]} a {solutions[saida_var]}], Quarto {solutions[cama_var].id_quarto}, Cama {solutions[cama_var].id_cama}')
-        
+
+            print(f'{idx_var}: {paciente.nome}, Sexo: {paciente.genero}, [Datas: {solutions[entrada_var]} a {solutions[saida_var]}], Quarto {solutions[cama_var].id_quarto}, Cama {solutions[cama_var].id_cama} [{room_gender}]')
     print('------------------')
+
+
 
 print("--- %s seconds ---" % round(time.time() - start_time, 3))
