@@ -69,9 +69,9 @@ departamentos = [
 # Lista de Quartos
 rooms = [
     Quarto(1,'R1', 2, 1, "F", 1, 0),
-    Quarto(2,'R2', 2, 1, "F", 1, 1),
+    Quarto(2,'R2', 2, 1, "F", 1, 1), # MULHER E TELEMETRY + OXYGEN
     Quarto(3,'R3', 2, 2, "M", 1, 0),
-    Quarto(4,'R4', 2, 2, "M", 1, 1),
+    Quarto(4,'R4', 2, 2, "M", 1, 1), # HOMEM E TELEMETRY + OXYGEN
 ]
 
 # Camas disponíveis no hospital com base nos quartos
@@ -94,8 +94,9 @@ problem = Problem()
 camasM = set()
 camasF = set()
 
-telemetry = set()
-oxygen = set()
+telemetry_values = set([0, 1])  # Valores possíveis para telemetry
+oxygen_values = set([0, 1])  # Valores possíveis para oxygen
+
 
 dominio = {}
 
@@ -106,6 +107,7 @@ for room in rooms:
     elif room.genero_quarto == "F":
         camasF.update([cama.id_cama for cama in camas if cama.id_quarto == room.id_quarto])
 
+    
     
 
 
@@ -119,15 +121,26 @@ for i in range(1, len(pacientes) + 1):
 # Pacientes não podem ficar no mesmo <CAMA> no mesmo período
 def check_cama_por_noite(a,b):
     return a != b
-    
 
-# Pacientes têm de ter o mesmo género que o quarto (no dominio)
-def check_genero_quarto(genero,cama_id):
-    print(genero,cama_id)
+def check_telemetry_requirement(telemetry, cama_id):
+    camaEspecifica = [cama.id_quarto for cama in camas if cama.id_cama == cama_id][0]
+    quarto = [quarto for quarto in rooms if quarto.id_quarto == camaEspecifica][0]
+    print(telemetry,cama_id,camaEspecifica, quarto)
+    return telemetry == quarto.telemetry or telemetry == 0
 
-    camaEspecifica = list((cama.id_quarto for cama in camas if cama.id_cama == cama_id))
-    quarto = list((quarto.genero_quarto for quarto in rooms if quarto.id_quarto == camaEspecifica[0]))
-    return genero == quarto[0]
+def check_oxygen_requirement(oxygen, cama_id):
+    camaEspecifica = [cama.id_quarto for cama in camas if cama.id_cama == cama_id][0]
+    quarto = [quarto for quarto in rooms if quarto.id_quarto == camaEspecifica][0]
+    print(oxygen,cama_id,camaEspecifica, quarto)
+    return oxygen == quarto.oxygen or oxygen == 0
+
+
+
+
+for idx, paciente in enumerate(pacientes):
+    # Pass the patient's telemetry and oxygen requirements as additional arguments
+    problem.addConstraint(FunctionConstraint(lambda cama_id, telemetry=paciente.telemetry: check_telemetry_requirement(telemetry, cama_id)), [f'P{idx+1}'])
+    problem.addConstraint(FunctionConstraint(lambda cama_id, oxygen=paciente.oxygen: check_oxygen_requirement(oxygen, cama_id)), [f'P{idx+1}'])
 
 
 for i, paciente1 in enumerate(pacientes):
@@ -138,7 +151,7 @@ for i, paciente1 in enumerate(pacientes):
         saidap2 = paciente2.data_saida
 
         if i != j and not(entradap1 > saidap2 or saidap1 < entradap2):
-           
+
             problem.addConstraint(
                 FunctionConstraint(check_cama_por_noite),(f"P{i+1}",f"P{j+1}")
             )
@@ -159,7 +172,7 @@ for noite in lista_noites:
             camaEspecifica = list((cama.id_quarto for cama in camas if cama.id_cama == solution[f'P{i+1}']))
             departamento = list((departamento.nome_departamento for departamento in departamentos if departamento.id_departamento == rooms[camaEspecifica[0]-1].departamento))
 
-            print(f"[{paciente.nome} Gen:{paciente.genero}] - [Dept: {departamento[0]} Quarto: {camaEspecifica[0]} - Cama:{solution[f'P{i+1}']}]  [Entrada: {paciente.data_entrada} - Saída:{paciente.data_saida}]")
+            print(f"[{paciente.nome} Gen:{paciente.genero}] - [Dept: {departamento[0]} Quarto: {camaEspecifica[0]} - Cama:{solution[f'P{i+1}']}]  [Entrada: {paciente.data_entrada} - Saída:{paciente.data_saida}] - [Telemetry: {paciente.telemetry} - Oxygen: {paciente.oxygen}]")
             res = True    
     if not res:
         print("Esta noite foi calminha...")
