@@ -1,0 +1,54 @@
+pedromeneses@MacBook-Pro-de-Pedro IA_G02-testing-algo % /opt/homebrew/bin/python3 /Users/pedromeneses/Downloads/IA_G02-testing-algo/main.py
+Noite 0:
+---------
+Noite 1:
+[Patient 1 Gen:M] - [Dept: Neurologia Quarto: 3 - Cama:5]  [Entrada: 1 - Saída:2]
+[Patient 3 Gen:M] - [Dept: Neurologia Quarto: 4 - Cama:8]  [Entrada: 1 - Saída:2]
+[Patient 5 Gen:M] - [Dept: Neurologia Quarto: 3 - Cama:6]  [Entrada: 1 - Saída:3]
+[Patient 7 Gen:F] - [Dept: Cardiologia Quarto: 1 - Cama:1]  [Entrada: 1 - Saída:7]
+---------
+Noite 2:
+[Patient 8 Gen:F] - [Dept: Cardiologia Quarto: 2 - Cama:3]  [Entrada: 2 - Saída:3]
+[Patient 9 Gen:M] - [Dept: Neurologia Quarto: 4 - Cama:7]  [Entrada: 2 - Saída:5]
+---------
+Noite 3:
+[Patient 10 Gen:F] - [Dept: Cardiologia Quarto: 2 - Cama:4]  [Entrada: 3 - Saída:10]
+---------
+Noite 4:
+[Patient 11 Gen:M] - [Dept: Neurologia Quarto: 4 - Cama:8]  [Entrada: 4 - Saída:10]
+---------
+Noite 5:
+[Patient 12 Gen:F] - [Dept: Cardiologia Quarto: 1 - Cama:2]  [Entrada: 5 - Saída:11]
+[Patient 13 Gen:F] - [Dept: Cardiologia Quarto: 2 - Cama:3]  [Entrada: 5 - Saída:12]
+---------
+Noite 6:
+---------
+Noite 7:
+[Patient 14 Gen:M] - [Dept: Neurologia Quarto: 3 - Cama:5]  [Entrada: 7 - Saída:13]
+---------
+Noite 8:
+[Patient 15 Gen:F] - [Dept: Cardiologia Quarto: 1 - Cama:1]  [Entrada: 8 - Saída:9]
+---------
+Noite 9:
+[Patient 16 Gen:M] - [Dept: Neurologia Quarto: 4 - Cama:7]  [Entrada: 9 - Saída:15]
+---------
+Noite 10:
+[Patient 17 Gen:M] - [Dept: Neurologia Quarto: 3 - Cama:6]  [Entrada: 10 - Saída:17]
+[Patient 18 Gen:F] - [Dept: Cardiologia Quarto: 1 - Cama:1]  [Entrada: 10 - Saída:14]
+---------
+Noite 11:
+[Patient 19 Gen:F] - [Dept: Cardiologia Quarto: 2 - Cama:4]  [Entrada: 11 - Saída:17]
+---------
+Noite 12:
+[Patient 20 Gen:F] - [Dept: Cardiologia Quarto: 1 - Cama:2]  [Entrada: 12 - Saída:19]
+---------
+Noite 13:
+---------
+Noite 14:
+[Patient 2 Gen:M] - [Dept: Neurologia Quarto: 3 - Cama:5]  [Entrada: 14 - Saída:15]
+[Patient 6 Gen:F] - [Dept: Cardiologia Quarto: 2 - Cama:3]  [Entrada: 14 - Saída:18]
+---------
+Noite 15:
+---------
+Noite 16:
+[Patient 4 Gen:F] - [Dept: Cardiologia Quarto: 1 - Cama:1]  [Entrada: 16 - Saída:18]
