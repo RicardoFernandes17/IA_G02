@@ -107,16 +107,10 @@ for room in rooms:
     elif room.genero_quarto == "F":
         camasF.update([cama.id_cama for cama in camas if cama.id_quarto == room.id_quarto])
 
-    
-    
-
-
 # Domínio
 for i in range(1, len(pacientes) + 1):
     dominio[f"P{i}"] = camasM if pacientes[i-1].genero == "M" else camasF    
     problem.addVariable(f'P{i}', list(dominio[f'P{i}']))
-
-
 
 # Pacientes não podem ficar no mesmo <CAMA> no mesmo período
 def check_cama_por_noite(a,b):
@@ -125,16 +119,14 @@ def check_cama_por_noite(a,b):
 def check_telemetry_requirement(telemetry, cama_id):
     camaEspecifica = [cama.id_quarto for cama in camas if cama.id_cama == cama_id][0]
     quarto = [quarto for quarto in rooms if quarto.id_quarto == camaEspecifica][0]
-    print(telemetry,cama_id,camaEspecifica, quarto)
+    #print(telemetry,cama_id,camaEspecifica, quarto)
     return telemetry == quarto.telemetry or telemetry == 0
 
 def check_oxygen_requirement(oxygen, cama_id):
     camaEspecifica = [cama.id_quarto for cama in camas if cama.id_cama == cama_id][0]
     quarto = [quarto for quarto in rooms if quarto.id_quarto == camaEspecifica][0]
-    print(oxygen,cama_id,camaEspecifica, quarto)
+    #print(oxygen,cama_id,camaEspecifica, quarto)
     return oxygen == quarto.oxygen or oxygen == 0
-
-
 
 
 for idx, paciente in enumerate(pacientes):
@@ -175,7 +167,7 @@ for noite in lista_noites:
             print(f"[{paciente.nome} Gen:{paciente.genero}] - [Dept: {departamento[0]} Quarto: {camaEspecifica[0]} - Cama:{solution[f'P{i+1}']}]  [Entrada: {paciente.data_entrada} - Saída:{paciente.data_saida}] - [Telemetry: {paciente.telemetry} - Oxygen: {paciente.oxygen}]")
             res = True    
     if not res:
-        print("Esta noite foi calminha...")
+        print("Sem pacientes...")
     
     print("---------")
 
