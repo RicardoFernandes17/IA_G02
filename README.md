@@ -8,3 +8,8 @@ Trabalho prático 1 IA
 -[x] Restrição de alocação por quarto, tem de consultar a capacidade máxima do quarto antes de alocar lá um. Se não houver capacidade, tem de alocar noutro quarto.
 
 - Se o genero do paciente num determinado quarto for maior que 50%, deve alocar o paciente noutro quarto. [So depois de restringir por quarto]
+
+
+
+### RESTRIÇÕES DA APLICAÇÃO!!!!!!!
+- O dominio de pacientes, o primeiro e o ultimo têm de ter géneros diferentes! não podem ter F-F nem M-M
